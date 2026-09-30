@@ -6,7 +6,7 @@ Aplicação full stack para que colaboradores registrem demandas internas (TI, R
 
 - **Autenticação**: login com usuário e senha, sessão via token JWT e logout.
 - **Solicitações**: criar, editar e excluir (edição e exclusão apenas pelo solicitante e enquanto o status for *Aberto*).
-- **Gerenciamento**: listagem com código, título, categoria, solicitante, data de abertura e status; consulta de detalhes; alteração de status com histórico.
+- **Gerenciamento**: listagem com código, título, categoria, solicitante, data de abertura e status; consulta de detalhes; alteração de status com histórico. O status segue o fluxo *Aberto → Em Atendimento → Concluído*, sem retorno; *Concluído* é final.
 - **Perfis**: o *Colaborador* vê e gerencia apenas as próprias solicitações; o *Atendente* vê todas, altera o status e gerencia usuários pela API.
 - **Filtros**: por período, categoria, status e texto livre no título.
 - **Dashboard**: total de solicitações, abertas, em atendimento e concluídas.
@@ -27,14 +27,16 @@ internal-portal-system/
 │   ├── database/        # Scripts SQL: 01-schema.sql (tabelas) e 02-seed.sql (dados iniciais)
 │   ├── prisma/          # schema.prisma (mapeamento das tabelas)
 │   └── src/
+│       ├── config/      # Conexão com o banco (Prisma) e variáveis de ambiente
 │       ├── controllers/ # Regras de negócio e validações
+│       ├── middlewares/ # Autenticação, perfil e tratamento global de erros
 │       ├── routes/      # Definição dos endpoints
-│       ├── services/    # Conexão com o banco e middleware de autenticação
+│       ├── validators/  # Funções de validação e visibilidade por perfil
 │       └── server.js    # Ponto de entrada da API
 └── frontend/
     └── src/
         ├── components/  # Componentes compartilhados (rota protegida)
-        ├── pages/       # Login e Home (dashboard, filtros, listagem, modais)
+        ├── pages/       # Login, Home (dashboard, filtros, listagem, modais) e página 404
         └── services/    # Cliente da API, tipos e formatação
 ```
 
@@ -179,7 +181,7 @@ Todas as rotas, exceto o login, exigem o cabeçalho `Authorization: Bearer <toke
 | POST | `/api/request` | Cria uma solicitação |
 | PUT | `/api/request/:id` | Edita uma solicitação aberta |
 | DELETE | `/api/request/:id` | Exclui uma solicitação aberta |
-| PATCH | `/api/request/:id/status` | Altera o status e registra no histórico (somente Atendente) |
+| PATCH | `/api/request/:id/status` | Avança o status para a próxima etapa e registra no histórico (somente Atendente) |
 | GET | `/api/history/:solicitacaoId` | Histórico de status de uma solicitação |
 | GET, POST, PUT, DELETE | `/api/user` | Gerenciamento de usuários (somente Atendente) |
 

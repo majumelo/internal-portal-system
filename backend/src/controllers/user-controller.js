@@ -1,6 +1,6 @@
 import bcrypt from 'bcryptjs';
-import prisma from '../services/db.js';
-import { parseId } from '../services/validation.js';
+import prisma from '../config/db.js';
+import { parseId } from '../validators/validation.js';
 
 const PERFIL_VALUES = ['COLABORADOR', 'ATENDENTE'];
 
@@ -38,7 +38,8 @@ function handlePrismaError(res, error, fallbackMessage) {
       message: 'Usuário possui solicitações ou histórico vinculados; desative-o em vez de excluir',
     });
   }
-  return res.status(500).json({ message: fallbackMessage, error: error.message });
+  console.error(fallbackMessage + ':', error);
+  return res.status(500).json({ message: fallbackMessage });
 }
 
 const controller = {
@@ -51,7 +52,8 @@ const controller = {
       });
       res.json(users);
     } catch (error) {
-      res.status(500).json({ message: 'Erro ao buscar usuários', error: error.message });
+      console.error('Erro ao buscar usuários' + ':', error);
+      res.status(500).json({ message: 'Erro ao buscar usuários' });
     }
   },
 
@@ -66,7 +68,8 @@ const controller = {
       if (!user) return res.status(404).json({ message: 'Usuário não encontrado' });
       res.json(user);
     } catch (error) {
-      res.status(500).json({ message: 'Erro ao buscar usuário', error: error.message });
+      console.error('Erro ao buscar usuário' + ':', error);
+      res.status(500).json({ message: 'Erro ao buscar usuário' });
     }
   },
 

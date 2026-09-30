@@ -5,9 +5,10 @@ import userRouter from './routes/user-router.js';
 import categoryRouter from './routes/category-router.js';
 import requestRouter from './routes/request-router.js';
 import historyRouter from './routes/history-router.js';
-import auth from './services/mid-auth.js';
-import requirePerfil from './services/mid-role.js';
-import pool from './services/db.js';
+import auth from './middlewares/auth.js';
+import requirePerfil from './middlewares/role.js';
+import { notFound, errorHandler } from './middlewares/error-handler.js';
+import pool from './config/db.js';
 
 const app = express();
 app.use(express.json());
@@ -36,7 +37,10 @@ app.use('/api/category', auth, categoryRouter);
 app.use('/api/request', auth, requestRouter);
 app.use('/api/history', auth, historyRouter);
 
-const port = Number(process.env.PORT || 3001);
+app.use(notFound);
+app.use(errorHandler);
+
+const port = Number(process.env.PORT || 3333);
 
 try {
   await pool.$connect();

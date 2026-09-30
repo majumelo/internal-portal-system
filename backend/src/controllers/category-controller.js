@@ -1,4 +1,4 @@
-import prisma from '../services/db.js';
+import prisma from '../config/db.js';
 
 const controller = {
   async getAll(req, res) {
@@ -9,7 +9,8 @@ const controller = {
       });
       res.json(categorias);
     } catch (error) {
-      res.status(500).json({ message: 'Erro ao buscar categorias', error: error.message });
+      console.error('Erro ao buscar categorias' + ':', error);
+      res.status(500).json({ message: 'Erro ao buscar categorias' });
     }
   },
 };

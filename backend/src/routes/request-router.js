@@ -1,6 +1,6 @@
 import express from 'express';
 import controller from '../controllers/request-controller.js';
-import requirePerfil from '../services/mid-role.js';
+import requirePerfil from '../middlewares/role.js';
 
 const router = express.Router();
 

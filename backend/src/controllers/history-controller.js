@@ -1,5 +1,5 @@
-import prisma from '../services/db.js';
-import { parseId, visibilityWhere } from '../services/validation.js';
+import prisma from '../config/db.js';
+import { parseId, visibilityWhere } from '../validators/validation.js';
 
 const controller = {
   async getBySolicitacao(req, res) {
@@ -27,7 +27,8 @@ const controller = {
       });
       res.json(historico);
     } catch (error) {
-      res.status(500).json({ message: 'Erro ao buscar histórico', error: error.message });
+      console.error('Erro ao buscar histórico' + ':', error);
+      res.status(500).json({ message: 'Erro ao buscar histórico' });
     }
   },
 };

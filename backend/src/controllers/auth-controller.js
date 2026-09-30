@@ -1,6 +1,6 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import prisma from '../services/db.js';
+import prisma from '../config/db.js';
 
 const controller = {
   async login(req, res) {

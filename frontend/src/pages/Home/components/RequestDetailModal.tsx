@@ -3,7 +3,11 @@ import type { HistoricoStatus, Solicitacao, Status } from '../../../services/typ
 import { apiFetch } from '../../../services/api';
 import { formatDateTime, statusLabel } from '../../../services/format';
 
-const STATUS_OPTIONS: Status[] = ['ABERTO', 'EM_ATENDIMENTO', 'CONCLUIDO'];
+// Mesmo fluxo validado no backend: Aberto → Em Atendimento → Concluído (final)
+const PROXIMO_STATUS: Partial<Record<Status, Status>> = {
+  ABERTO: 'EM_ATENDIMENTO',
+  EM_ATENDIMENTO: 'CONCLUIDO',
+};
 
 type Props = {
   solicitacao: Solicitacao;
@@ -15,10 +19,11 @@ type Props = {
 const RequestDetailModal = ({ solicitacao, canChangeStatus, onClose, onChangeStatus }: Props) => {
   const [historico, setHistorico] = useState<HistoricoStatus[]>([]);
   const [carregandoHistorico, setCarregandoHistorico] = useState(true);
-  const [novoStatus, setNovoStatus] = useState<Status>(solicitacao.status);
   const [observacao, setObservacao] = useState('');
   const [erro, setErro] = useState('');
   const [enviando, setEnviando] = useState(false);
+
+  const proximoStatus = PROXIMO_STATUS[solicitacao.status];
 
   useEffect(() => {
     let ativo = true;
@@ -36,14 +41,15 @@ const RequestDetailModal = ({ solicitacao, canChangeStatus, onClose, onChangeSta
     return () => {
       ativo = false;
     };
-  }, [solicitacao.id]);
+  }, [solicitacao.id, solicitacao.status]);
 
   const handleStatusSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!proximoStatus) return;
     setErro('');
     setEnviando(true);
     try {
-      await onChangeStatus(solicitacao.id, novoStatus, observacao.trim());
+      await onChangeStatus(solicitacao.id, proximoStatus, observacao.trim());
       setObservacao('');
     } catch (error) {
       setErro(error instanceof Error ? error.message : 'Erro ao alterar status.');
@@ -84,19 +90,8 @@ const RequestDetailModal = ({ solicitacao, canChangeStatus, onClose, onChangeSta
 
         {erro && <div className="form-error">{erro}</div>}
 
-        {canChangeStatus ? (
+        {canChangeStatus && proximoStatus ? (
           <form onSubmit={handleStatusSubmit}>
-            <label className="form-field">
-              Alterar status
-              <select value={novoStatus} onChange={(e) => setNovoStatus(e.target.value as Status)}>
-                {STATUS_OPTIONS.map((status) => (
-                  <option key={status} value={status}>
-                    {statusLabel(status)}
-                  </option>
-                ))}
-              </select>
-            </label>
-
             <label className="form-field">
               Observação (opcional)
               <textarea
@@ -114,9 +109,9 @@ const RequestDetailModal = ({ solicitacao, canChangeStatus, onClose, onChangeSta
               <button
                 type="submit"
                 className="btn btn-primary"
-                disabled={enviando || novoStatus === solicitacao.status}
+                disabled={enviando}
               >
-                {enviando ? 'Atualizando...' : 'Atualizar status'}
+                {enviando ? 'Atualizando...' : `Mover para ${statusLabel(proximoStatus)}`}
               </button>
             </div>
           </form>

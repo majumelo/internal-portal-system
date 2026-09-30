@@ -1,5 +1,5 @@
-import prisma from '../services/db.js';
-import { parseId, parseDate, visibilityWhere } from '../services/validation.js';
+import prisma from '../config/db.js';
+import { parseId, parseDate, visibilityWhere } from '../validators/validation.js';
 
 const STATUS_VALUES = ['ABERTO', 'EM_ATENDIMENTO', 'CONCLUIDO'];
 
@@ -23,8 +23,12 @@ function handlePrismaError(res, error, notFoundMessage) {
   if (error.code === 'P2003') {
     return res.status(400).json({ message: 'Categoria informada é inválida' });
   }
-  return res.status(500).json({ message: 'Erro ao processar a solicitação', error: error.message });
+  console.error('Erro ao processar a solicitação:', error);
+  return res.status(500).json({ message: 'Erro ao processar a solicitação' });
 }
+
+// Fluxo de status: ABERTO → EM_ATENDIMENTO → CONCLUIDO. Concluído é final.
+const PROXIMO_STATUS = { ABERTO: 'EM_ATENDIMENTO', EM_ATENDIMENTO: 'CONCLUIDO' };
 
 // Retorna a mensagem de erro ou null
 function validateTitulo(titulo) {
@@ -93,7 +97,8 @@ const controller = {
       });
       res.json(solicitacoes);
     } catch (error) {
-      res.status(500).json({ message: 'Erro ao buscar solicitações', error: error.message });
+      console.error('Erro ao buscar solicitações' + ':', error);
+      res.status(500).json({ message: 'Erro ao buscar solicitações' });
     }
   },
 
@@ -108,7 +113,8 @@ const controller = {
       ]);
       res.json({ total, aberto, emAtendimento, concluido });
     } catch (error) {
-      res.status(500).json({ message: 'Erro ao buscar indicadores', error: error.message });
+      console.error('Erro ao buscar indicadores' + ':', error);
+      res.status(500).json({ message: 'Erro ao buscar indicadores' });
     }
   },
 
@@ -123,7 +129,8 @@ const controller = {
       if (!solicitacao) return res.status(404).json({ message: 'Solicitação não encontrada' });
       res.json(solicitacao);
     } catch (error) {
-      res.status(500).json({ message: 'Erro ao buscar solicitação', error: error.message });
+      console.error('Erro ao buscar solicitação' + ':', error);
+      res.status(500).json({ message: 'Erro ao buscar solicitação' });
     }
   },
 
@@ -142,12 +149,16 @@ const controller = {
         return res.status(400).json({ message: 'Categoria informada é inválida' });
       }
 
+      // A solicitação e o registro inicial do histórico nascem na mesma transação
       const solicitacao = await prisma.solicitacao.create({
         data: {
           titulo: titulo.trim(),
           descricao: descricao.trim(),
           categoriaId: categoria.id,
           solicitanteId: req.user.id,
+          historicos: {
+            create: { statusAnterior: null, statusNovo: 'ABERTO', usuarioId: req.user.id },
+          },
         },
         select: listagemSelect,
       });
@@ -242,6 +253,14 @@ const controller = {
       if (!atual) return res.status(404).json({ message: 'Solicitação não encontrada' });
       if (atual.status === status) {
         return res.status(400).json({ message: 'A solicitação já está com esse status' });
+      }
+      if (atual.status === 'CONCLUIDO') {
+        return res.status(409).json({ message: 'Solicitações concluídas não podem ter o status alterado' });
+      }
+      if (PROXIMO_STATUS[atual.status] !== status) {
+        return res.status(409).json({
+          message: 'Uma solicitação aberta precisa passar por Em Atendimento antes de ser concluída',
+        });
       }
 
       const [solicitacao] = await prisma.$transaction([

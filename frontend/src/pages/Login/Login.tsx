@@ -1,6 +1,8 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { API_URL } from '../../services/api';
+import type { FormEvent } from 'react';
+import { Navigate, useNavigate } from 'react-router-dom';
+import { apiFetch, ApiError } from '../../services/api';
+import type { Usuario } from '../../services/types';
 import './Login.css';
 
 type Mensagem = { texto: string; tipo: 'aviso' | 'erro' } | null;
@@ -13,7 +15,7 @@ const Login = () => {
   const [enviando, setEnviando] = useState(false);
   const navigate = useNavigate();
 
-  const sendRequest = async (e: any) => {
+  const sendRequest = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setMensagem(null);
 
@@ -24,28 +26,25 @@ const Login = () => {
 
     setEnviando(true);
     try {
-      const result = await fetch(`${API_URL}/api/auth/login`, {
+      const json = await apiFetch<{ token: string; usuario: Usuario }>('/api/auth/login', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ login: name, senha: password }),
       });
-
-      const json = await result.json().catch(() => null);
-
-      if (!result.ok) {
-        setMensagem({ texto: json?.message || 'Usuário ou senha incorretos.', tipo: 'erro' });
-        return;
-      }
 
       localStorage.setItem('token', json.token);
       localStorage.setItem('usuario', JSON.stringify(json.usuario));
       navigate('/home');
-    } catch {
-      setMensagem({ texto: 'Não foi possível conectar ao servidor.', tipo: 'erro' });
+    } catch (error) {
+      setMensagem({
+        texto: error instanceof ApiError ? error.message : 'Não foi possível conectar ao servidor.',
+        tipo: 'erro',
+      });
     } finally {
       setEnviando(false);
     }
   };
+
+  if (localStorage.getItem('token')) return <Navigate to="/home" replace />;
 
   return (
     <div id="login-page">
