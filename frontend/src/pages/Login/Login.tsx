@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { API_URL } from '../../config/api';
+import { API_URL } from '../../services/api';
 import './Login.css';
 
 type Mensagem = { texto: string; tipo: 'aviso' | 'erro' } | null;

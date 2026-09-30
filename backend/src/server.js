@@ -1,22 +1,23 @@
-import dotenv from 'dotenv';
 import express from 'express';
 import cors from 'cors';
+import authRouter from './routes/auth-router.js';
 import userRouter from './routes/user-router.js';
-
-dotenv.config();
+import categoryRouter from './routes/category-router.js';
+import requestRouter from './routes/request-router.js';
+import historyRouter from './routes/history-router.js';
+import auth from './services/mid-auth.js';
+import requirePerfil from './services/mid-role.js';
+import pool from './services/db.js';
 
 const app = express();
 app.use(express.json());
 
+const allowedOrigins = (process.env.CORS_ORIGIN || 'http://localhost:5173')
+  .split(',')
+  .map((origin) => origin.trim());
+
 const corsOptions = {
   origin: function (origin, callback) {
-    const allowedOrigins = [
-      'http://localhost:5173',
-      'http://10.16.10.206:5173',
-      'http://10.16.10.206:3000',
-      'http://10.16.32.6:5173',
-      'http://10.16.32.6:3000',
-    ];
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
@@ -29,4 +30,21 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.options('*', cors(corsOptions));
 
-app.use('/api/user', userRouter);
+app.use('/api/auth', authRouter);
+app.use('/api/user', auth, requirePerfil('ATENDENTE'), userRouter);
+app.use('/api/category', auth, categoryRouter);
+app.use('/api/request', auth, requestRouter);
+app.use('/api/history', auth, historyRouter);
+
+const port = Number(process.env.PORT || 3001);
+
+try {
+  await pool.$connect();
+  app.listen(port, () => {
+    console.log(`API pronta na porta ${port}; conexão com PostgreSQL confirmada.`);
+  });
+} catch (error) {
+  console.error('Não foi possível conectar ao PostgreSQL:', error.message);
+  process.exitCode = 1;
+  await pool.$disconnect();
+}

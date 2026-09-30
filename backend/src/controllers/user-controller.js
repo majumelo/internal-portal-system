@@ -1,14 +1,54 @@
 import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
+import prisma from '../services/db.js';
+import { parseId } from '../services/validation.js';
+
+const PERFIL_VALUES = ['COLABORADOR', 'ATENDENTE'];
+
+const userSelect = { id: true, nome: true, login: true, perfil: true, ativo: true };
+
+// Valida apenas os campos presentes; retorna a mensagem de erro ou null
+function validateFields({ nome, login, senha, perfil, ativo }) {
+  if (nome !== undefined && (typeof nome !== 'string' || !nome.trim() || nome.trim().length > 100)) {
+    return 'Nome é obrigatório e deve ter no máximo 100 caracteres';
+  }
+  if (login !== undefined && (typeof login !== 'string' || !login.trim() || login.trim().length > 50)) {
+    return 'Login é obrigatório e deve ter no máximo 50 caracteres';
+  }
+  if (senha !== undefined && (typeof senha !== 'string' || senha.length < 6)) {
+    return 'Senha deve ter pelo menos 6 caracteres';
+  }
+  if (perfil !== undefined && !PERFIL_VALUES.includes(perfil)) {
+    return `Perfil deve ser um de: ${PERFIL_VALUES.join(', ')}`;
+  }
+  if (ativo !== undefined && typeof ativo !== 'boolean') {
+    return 'Ativo deve ser verdadeiro ou falso';
+  }
+  return null;
+}
+
+function handlePrismaError(res, error, fallbackMessage) {
+  if (error.code === 'P2025') {
+    return res.status(404).json({ message: 'Usuário não encontrado' });
+  }
+  if (error.code === 'P2002') {
+    return res.status(409).json({ message: 'Já existe um usuário com esse login' });
+  }
+  if (error.code === 'P2003') {
+    return res.status(409).json({
+      message: 'Usuário possui solicitações ou histórico vinculados; desative-o em vez de excluir',
+    });
+  }
+  return res.status(500).json({ message: fallbackMessage, error: error.message });
+}
 
 const controller = {
 
   async getAll(req, res) {
     try {
-      const users = await prisma.users.findMany({
-        select: { id: true, name: true, role: true, agencyId: true },
+      const users = await prisma.usuario.findMany({
+        select: userSelect,
+        orderBy: { nome: 'asc' },
       });
-      if (users.length === 0) return res.status(404).json({ message: 'Nenhum usuário encontrado' });
       res.json(users);
     } catch (error) {
       res.status(500).json({ message: 'Erro ao buscar usuários', error: error.message });
@@ -17,10 +57,11 @@ const controller = {
 
   async getOne(req, res) {
     try {
-      const id = Number(req.params.id);
-      const user = await prisma.users.findUnique({
+      const id = parseId(req.params.id);
+      if (!id) return res.status(400).json({ message: 'Código do usuário inválido' });
+      const user = await prisma.usuario.findUnique({
         where: { id },
-        select: { id: true, name: true, role: true, agencyId: true },
+        select: userSelect,
       });
       if (!user) return res.status(404).json({ message: 'Usuário não encontrado' });
       res.json(user);
@@ -31,68 +72,60 @@ const controller = {
 
   async create(req, res) {
     try {
-      const { name, password, role, agencyId } = req.body;
-      const hash = await bcrypt.hash(password, 10);
-      await prisma.users.create({
-        data: { name, password: hash, role, agencyId: agencyId ? Number(agencyId) : null },
+      const { nome, login, senha, perfil } = req.body;
+      if (nome === undefined || login === undefined || senha === undefined || perfil === undefined) {
+        return res.status(400).json({ message: 'Nome, login, senha e perfil são obrigatórios' });
+      }
+      const erro = validateFields({ nome, login, senha, perfil });
+      if (erro) return res.status(400).json({ message: erro });
+
+      const senhaHash = await bcrypt.hash(senha, 10);
+      const user = await prisma.usuario.create({
+        data: { nome: nome.trim(), login: login.trim(), senhaHash, perfil },
+        select: userSelect,
       });
-      res.status(201).json({ message: 'Usuário criado com sucesso' });
+      res.status(201).json(user);
     } catch (error) {
-      res.status(500).json({ message: 'Erro ao criar usuário', error: error.message });
+      handlePrismaError(res, error, 'Erro ao criar usuário');
     }
   },
 
   async editOne(req, res) {
     try {
-      const id = Number(req.params.id);
-      const { name, password, role, agencyId } = req.body;
+      const id = parseId(req.params.id);
+      if (!id) return res.status(400).json({ message: 'Código do usuário inválido' });
+
+      const { nome, login, senha, perfil, ativo } = req.body;
+      const erro = validateFields({ nome, login, senha, perfil, ativo });
+      if (erro) return res.status(400).json({ message: erro });
+
       const data = {
-        name, role,
-        ...(agencyId !== undefined && { agencyId: agencyId ? Number(agencyId) : null }),
+        ...(nome !== undefined && { nome: nome.trim() }),
+        ...(login !== undefined && { login: login.trim() }),
+        ...(perfil !== undefined && { perfil }),
+        ...(ativo !== undefined && { ativo }),
       };
-      if (password) data.password = await bcrypt.hash(password, 10);
-      await prisma.users.update({ where: { id }, data });
-      res.json({ message: 'Usuário atualizado com sucesso' });
+      if (senha) data.senhaHash = await bcrypt.hash(senha, 10);
+      const user = await prisma.usuario.update({ where: { id }, data, select: userSelect });
+      res.json(user);
     } catch (error) {
-      res.status(500).json({ message: 'Erro ao atualizar usuário', error: error.message });
+      handlePrismaError(res, error, 'Erro ao atualizar usuário');
     }
   },
 
   async deleteOne(req, res) {
     try {
-      const id = Number(req.params.id);
-      await prisma.users.delete({ where: { id } });
+      const id = parseId(req.params.id);
+      if (!id) return res.status(400).json({ message: 'Código do usuário inválido' });
+      if (id === req.user.id) {
+        return res.status(400).json({ message: 'Você não pode excluir o próprio usuário' });
+      }
+      await prisma.usuario.delete({ where: { id } });
       res.json({ message: 'Usuário deletado com sucesso' });
     } catch (error) {
-      res.status(500).json({ message: 'Erro ao deletar usuário', error: error.message });
+      handlePrismaError(res, error, 'Erro ao deletar usuário');
     }
   },
 
-    async login(req, res) {
-        try {
-            const { name, password, domain } = req.body;
-
-            if (!name || !password) {
-                return res.status(400).json({ message: 'Name e password são obrigatórios' });
-            }
-            
-            const user = await prisma.users.findFirst({ where: { name } });
-            if (!user) return res.status(404).json({ message: 'Usuário não encontrado' });
-
-            const validPassword = user.password ? await bcrypt.compare(password, user.password) : false;
-            if (!validPassword) return res.status(401).json({ message: 'Usuário ou Senha incorretos' });
-
-            const token = jwt.sign(
-                { id: user.id, role: user.role, name: user.name},
-                secret,
-                { expiresIn: '8h' }
-            );
-
-            res.json({ token });
-
-        } catch (error) {
-      res.status(500).json({ message: 'Erro ao fazer login', error: error.message });
-    }
-    }, 
 };
 export default controller;
