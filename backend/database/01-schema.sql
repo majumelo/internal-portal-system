@@ -28,7 +28,6 @@ CREATE TABLE IF NOT EXISTS solicitacao (
     atualizado_em   TIMESTAMPTZ  NOT NULL DEFAULT NOW()
 );
 
--- Índices nos campos usados pelos filtros e pela visibilidade (RN05)
 CREATE INDEX IF NOT EXISTS idx_solicitacao_status       ON solicitacao (status);
 CREATE INDEX IF NOT EXISTS idx_solicitacao_categoria    ON solicitacao (categoria_id);
 CREATE INDEX IF NOT EXISTS idx_solicitacao_solicitante  ON solicitacao (solicitante_id);
