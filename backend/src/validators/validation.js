@@ -9,7 +9,7 @@ export function parseDate(value, endOfDay = false) {
   return Number.isNaN(date.getTime()) ? null : date;
 }
 
-// Colaboradores enxergam apenas as próprias solicitações; atendentes enxergam todas
+// Colaboradores enxergam apenas as próprias solicitações e os atendentes enxergam todas
 export function visibilityWhere(user) {
   return user.perfil === 'ATENDENTE' ? {} : { solicitanteId: user.id };
 }

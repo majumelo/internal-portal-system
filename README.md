@@ -16,7 +16,6 @@ Desenvolvido como desafio técnico da 2ª etapa do processo seletivo para Desenv
 - [Execução](#execução)
 - [Acesso](#acesso)
 - [Endpoints da API](#endpoints-da-api)
-- [Evidências](#evidências)
 - [Problemas comuns](#problemas-comuns)
 
 ## Funcionalidades
@@ -27,15 +26,6 @@ Desenvolvido como desafio técnico da 2ª etapa do processo seletivo para Desenv
 - **Perfis**: o *Colaborador* vê e gerencia apenas as próprias solicitações; o *Atendente* vê todas, altera o status e gerencia usuários pela API.
 - **Filtros**: por período, categoria, status e texto livre no título.
 - **Dashboard**: total de solicitações, abertas, em atendimento e concluídas.
-=======
-| Requisito | O que foi implementado |
-| --- | --- |
-| Autenticação | Login com usuário e senha, sessão via token JWT (8 h), logout e rotas protegidas no frontend e na API |
-| Cadastro de solicitações | Criar, editar e excluir; data de criação, solicitante e status *Aberto* preenchidos automaticamente |
-| Gerenciamento | Listagem com código, título, categoria, solicitante, data de abertura e status; consulta de detalhes; alteração de status com observação |
-| Histórico | Cada mudança de status fica registrada com autor, data e observação |
-| Consulta e filtros | Período, categoria, status e texto livre no título, combináveis |
-| Dashboard | Total de solicitações, abertas, em atendimento e concluídas |
 
 ## Perfis de acesso
 
@@ -74,16 +64,6 @@ internal-portal-system/
         ├── components/  # Componentes compartilhados (rota protegida)
         ├── pages/       # Login, Home (dashboard, filtros, listagem, modais) e página 404
         └── services/    # Cliente da API, tipos e formatação
-│       ├── controllers/ # Validações, regras de negócio e respostas HTTP
-│       ├── routes/      # Definição dos endpoints
-│       ├── services/    # Conexão com o banco, middlewares de autenticação/perfil e utilitários
-│       └── server.js    # Ponto de entrada da API
-├── frontend/
-│   └── src/
-│       ├── components/  # Componentes compartilhados (rota protegida)
-│       ├── pages/       # Login e Home (dashboard, filtros, listagem e modais)
-│       └── services/    # Cliente da API, tipos e formatação
-└── docs/                # Memorial técnico, dicionário de dados e evidências
 ```
 
 ## Pré-requisitos
@@ -152,7 +132,7 @@ Em outro terminal, a partir da raiz do projeto:
 ```bash
 cd frontend
 npm install
-cp .env.example .env       
+cp .env.example .env        # Windows (PowerShell): Copy-Item .env.example .env
 ```
 
 ## Configuração
@@ -225,19 +205,6 @@ Abra `http://localhost:5173` e entre com um usuário de demonstração. Um rotei
 
 Todas as rotas, exceto o login, exigem o cabeçalho `Authorization: Bearer <token>`.
 
-| Método | Rota | Descrição |
-| --- | --- | --- |
-| POST | `/api/auth/login` | Autentica e retorna o token e os dados do usuário |
-| GET | `/api/category` | Lista as categorias ativas |
-| GET | `/api/request` | Lista solicitações (filtros: `categoria`, `status`, `dataInicio`, `dataFim`, `texto`) |
-| GET | `/api/request/dashboard` | Indicadores do dashboard |
-| GET | `/api/request/:id` | Detalhes de uma solicitação |
-| POST | `/api/request` | Cria uma solicitação |
-| PUT | `/api/request/:id` | Edita uma solicitação aberta |
-| DELETE | `/api/request/:id` | Exclui uma solicitação aberta |
-| PATCH | `/api/request/:id/status` | Avança o status para a próxima etapa e registra no histórico (somente Atendente) |
-| GET | `/api/history/:solicitacaoId` | Histórico de status de uma solicitação |
-| GET, POST, PUT, DELETE | `/api/user` | Gerenciamento de usuários (somente Atendente) |
 | Método | Rota | Descrição | Perfil |
 | --- | --- | --- | --- |
 | POST | `/api/auth/login` | Autentica e retorna o token e os dados do usuário | Público |
@@ -248,7 +215,7 @@ Todas as rotas, exceto o login, exigem o cabeçalho `Authorization: Bearer <toke
 | POST | `/api/request` | Cria uma solicitação | Todos |
 | PUT | `/api/request/:id` | Edita uma solicitação aberta (somente o solicitante) | Todos |
 | DELETE | `/api/request/:id` | Exclui uma solicitação aberta (somente o solicitante) | Todos |
-| PATCH | `/api/request/:id/status` | Altera o status e registra no histórico | Atendente |
+| PATCH | `/api/request/:id/status` | Avança o status para a próxima etapa e registra no histórico | Atendente |
 | GET | `/api/history/:solicitacaoId` | Histórico de status de uma solicitação | Todos |
 | GET, POST | `/api/user` | Lista e cria usuários | Atendente |
 | GET, PUT, DELETE | `/api/user/:id` | Consulta, edita e exclui um usuário | Atendente |
@@ -292,7 +259,6 @@ Erros sempre retornam `{ "message": "..." }`:
 | 404 | Registro não encontrado |
 | 409 | Conflito (login já existente, usuário com vínculos) |
 </details>
-
 
 ## Problemas comuns
 

@@ -8,7 +8,7 @@ import historyRouter from './routes/history-router.js';
 import auth from './middlewares/auth.js';
 import requirePerfil from './middlewares/role.js';
 import { notFound, errorHandler } from './middlewares/error-handler.js';
-import pool from './config/db.js';
+import prisma from './config/db.js';
 
 const app = express();
 app.use(express.json());
@@ -43,12 +43,12 @@ app.use(errorHandler);
 const port = Number(process.env.PORT || 3333);
 
 try {
-  await pool.$connect();
+  await prisma.$connect();
   app.listen(port, () => {
     console.log(`API pronta na porta ${port}; conexão com PostgreSQL confirmada.`);
   });
 } catch (error) {
   console.error('Não foi possível conectar ao PostgreSQL:', error.message);
   process.exitCode = 1;
-  await pool.$disconnect();
+  await prisma.$disconnect();
 }
