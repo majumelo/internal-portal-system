@@ -16,13 +16,11 @@ Desenvolvido como desafio técnico da 2ª etapa do processo seletivo para Desenv
 - [Execução](#execução)
 - [Acesso](#acesso)
 - [Endpoints da API](#endpoints-da-api)
-- [Documentação](#documentação)
 - [Evidências](#evidências)
 - [Problemas comuns](#problemas-comuns)
 
 ## Funcionalidades
 
-<<<<<<< HEAD
 - **Autenticação**: login com usuário e senha, sessão via token JWT e logout.
 - **Solicitações**: criar, editar e excluir (edição e exclusão apenas pelo solicitante e enquanto o status for *Aberto*).
 - **Gerenciamento**: listagem com código, título, categoria, solicitante, data de abertura e status; consulta de detalhes; alteração de status com histórico. O status segue o fluxo *Aberto → Em Atendimento → Concluído*, sem retorno; *Concluído* é final.
@@ -41,8 +39,6 @@ Desenvolvido como desafio técnico da 2ª etapa do processo seletivo para Desenv
 
 ## Perfis de acesso
 
-O enunciado não define quem altera o status, então o sistema tem dois perfis:
-
 | Ação | Colaborador | Atendente |
 | --- | :---: | :---: |
 | Abrir solicitação | ✔ | ✔ |
@@ -50,9 +46,6 @@ O enunciado não define quem altera o status, então o sistema tem dois perfis:
 | Ver solicitações | Apenas as próprias | Todas |
 | Alterar status | — | ✔ |
 | Gerenciar usuários (pela API) | — | ✔ |
-
-As regras de negócio completas (RN01 a RN09) estão no [Memorial Técnico](docs/MEMORIAL_TECNICO.pdf).
->>>>>>> f18a478323f110374ba248b188e45bdc40e5373e
 
 ## Tecnologias
 
@@ -62,8 +55,6 @@ As regras de negócio completas (RN01 a RN09) estão no [Memorial Técnico](docs
 | Frontend | React 19, TypeScript, Vite, React Router 7, CSS puro |
 | Banco de dados | PostgreSQL 14+ (extensão `pgcrypto` no seed) |
 
-A justificativa de cada escolha está no [Memorial Técnico](docs/MEMORIAL_TECNICO.pdf).
-
 ## Estrutura do projeto
 
 ```
@@ -72,7 +63,6 @@ internal-portal-system/
 │   ├── database/        # 01-schema.sql (tabelas) e 02-seed.sql (dados iniciais)
 │   ├── prisma/          # schema.prisma (mapeamento das tabelas para o Prisma)
 │   └── src/
-<<<<<<< HEAD
 │       ├── config/      # Conexão com o banco (Prisma) e variáveis de ambiente
 │       ├── controllers/ # Regras de negócio e validações
 │       ├── middlewares/ # Autenticação, perfil e tratamento global de erros
@@ -84,7 +74,6 @@ internal-portal-system/
         ├── components/  # Componentes compartilhados (rota protegida)
         ├── pages/       # Login, Home (dashboard, filtros, listagem, modais) e página 404
         └── services/    # Cliente da API, tipos e formatação
-=======
 │       ├── controllers/ # Validações, regras de negócio e respostas HTTP
 │       ├── routes/      # Definição dos endpoints
 │       ├── services/    # Conexão com o banco, middlewares de autenticação/perfil e utilitários
@@ -95,7 +84,6 @@ internal-portal-system/
 │       ├── pages/       # Login e Home (dashboard, filtros, listagem e modais)
 │       └── services/    # Cliente da API, tipos e formatação
 └── docs/                # Memorial técnico, dicionário de dados e evidências
->>>>>>> f18a478323f110374ba248b188e45bdc40e5373e
 ```
 
 ## Pré-requisitos
@@ -164,7 +152,7 @@ Em outro terminal, a partir da raiz do projeto:
 ```bash
 cd frontend
 npm install
-cp .env.example .env        # Windows (PowerShell): Copy-Item .env.example .env
+cp .env.example .env       
 ```
 
 ## Configuração
@@ -196,7 +184,7 @@ Criadas pelo `02-seed.sql`:
 | Usuário | Senha | Perfil |
 | --- | --- | --- |
 | `maria` | `123456` | Colaborador |
-| `joao` | `123456` | Colaborador |
+| `layanne` | `123456` | Colaborador |
 | `ana` | `123456` | Atendente |
 
 ## Execução
@@ -237,7 +225,6 @@ Abra `http://localhost:5173` e entre com um usuário de demonstração. Um rotei
 
 Todas as rotas, exceto o login, exigem o cabeçalho `Authorization: Bearer <token>`.
 
-<<<<<<< HEAD
 | Método | Rota | Descrição |
 | --- | --- | --- |
 | POST | `/api/auth/login` | Autentica e retorna o token e os dados do usuário |
@@ -251,7 +238,6 @@ Todas as rotas, exceto o login, exigem o cabeçalho `Authorization: Bearer <toke
 | PATCH | `/api/request/:id/status` | Avança o status para a próxima etapa e registra no histórico (somente Atendente) |
 | GET | `/api/history/:solicitacaoId` | Histórico de status de uma solicitação |
 | GET, POST, PUT, DELETE | `/api/user` | Gerenciamento de usuários (somente Atendente) |
-=======
 | Método | Rota | Descrição | Perfil |
 | --- | --- | --- | --- |
 | POST | `/api/auth/login` | Autentica e retorna o token e os dados do usuário | Público |
@@ -266,7 +252,6 @@ Todas as rotas, exceto o login, exigem o cabeçalho `Authorization: Bearer <toke
 | GET | `/api/history/:solicitacaoId` | Histórico de status de uma solicitação | Todos |
 | GET, POST | `/api/user` | Lista e cria usuários | Atendente |
 | GET, PUT, DELETE | `/api/user/:id` | Consulta, edita e exclui um usuário | Atendente |
->>>>>>> f18a478323f110374ba248b188e45bdc40e5373e
 
 Listagem, detalhes, histórico e dashboard consideram apenas as solicitações visíveis para o usuário autenticado.
 
@@ -308,26 +293,6 @@ Erros sempre retornam `{ "message": "..." }`:
 | 409 | Conflito (login já existente, usuário com vínculos) |
 </details>
 
-## Documentação
-
-| Documento | Conteúdo |
-| --- | --- |
-| [Memorial Técnico de Desenvolvimento](docs/MEMORIAL_TECNICO.pdf) | Tecnologias, justificativas técnicas e conceituais, regras de negócio e análise crítica |
-| [Dicionário de dados](docs/dicionario-de-dados.md) | Diagrama ER, tabelas, colunas, restrições e domínios |
-| [Scripts SQL](backend/database/) | Criação das tabelas e dados iniciais |
-
-## Evidências
-
-Capturas da aplicação em funcionamento, em [`docs/evidencias/`](docs/evidencias/):
-
-| Tela | Arquivo |
-| --- | --- |
-| Login | `docs/evidencias/01-login.png` |
-| Dashboard e listagem (Colaborador) | `docs/evidencias/02-home-colaborador.png` |
-| Nova solicitação | `docs/evidencias/03-nova-solicitacao.png` |
-| Filtros aplicados | `docs/evidencias/04-filtros.png` |
-| Detalhes e alteração de status (Atendente) | `docs/evidencias/05-alterar-status.png` |
-| Histórico da solicitação | `docs/evidencias/06-historico.png` |
 
 ## Problemas comuns
 
