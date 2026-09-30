@@ -1,7 +1,3 @@
--- =============================================================
--- Portal de Solicitações Internas - Estrutura do banco
--- PostgreSQL 14+
--- =============================================================
 
 CREATE TABLE IF NOT EXISTS usuario (
     id          SERIAL       PRIMARY KEY,
