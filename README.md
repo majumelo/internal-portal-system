@@ -2,8 +2,6 @@
 
 Aplicação full stack em que colaboradores registram demandas internas (TI, RH, Compras, Financeiro, Infraestrutura) e acompanham cada uma até a conclusão, enquanto atendentes gerenciam o andamento.
 
-Desenvolvido como desafio técnico da 2ª etapa do processo seletivo para Desenvolvedor(a) de Sistemas Júnior da bit Soluções.
-
 ## Sumário
 
 - [Funcionalidades](#funcionalidades)
