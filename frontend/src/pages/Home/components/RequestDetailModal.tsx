@@ -3,7 +3,7 @@ import type { HistoricoStatus, Solicitacao, Status } from '../../../services/typ
 import { apiFetch } from '../../../services/api';
 import { formatDateTime, statusLabel } from '../../../services/format';
 
-// Mesmo fluxo validado no backend: Aberto → Em Atendimento → Concluído (final)
+// espelha o fluxo validado no backend
 const PROXIMO_STATUS: Partial<Record<Status, Status>> = {
   ABERTO: 'EM_ATENDIMENTO',
   EM_ATENDIMENTO: 'CONCLUIDO',
@@ -26,6 +26,7 @@ const RequestDetailModal = ({ solicitacao, canChangeStatus, onClose, onChangeSta
   const proximoStatus = PROXIMO_STATUS[solicitacao.status];
 
   useEffect(() => {
+    // ignora a resposta se o modal fechar ou trocar de solicitação antes
     let ativo = true;
     setCarregandoHistorico(true);
     apiFetch<HistoricoStatus[]>(`/api/history/${solicitacao.id}`)
@@ -123,7 +124,7 @@ const RequestDetailModal = ({ solicitacao, canChangeStatus, onClose, onChangeSta
           </div>
         )}
 
-        <h2 style={{ fontSize: '1rem', marginTop: '1.5rem' }}>Histórico</h2>
+        <h3 className="detail-section-title">Histórico</h3>
         {carregandoHistorico ? (
           <p className="detail-description">Carregando histórico...</p>
         ) : historico.length === 0 ? (

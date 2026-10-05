@@ -27,7 +27,7 @@ const controller = {
       });
       res.json(historico);
     } catch (error) {
-      console.error('Erro ao buscar histórico' + ':', error);
+      console.error('Erro ao buscar histórico:', error);
       res.status(500).json({ message: 'Erro ao buscar histórico' });
     }
   },

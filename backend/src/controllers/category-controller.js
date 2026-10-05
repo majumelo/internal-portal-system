@@ -9,7 +9,7 @@ const controller = {
       });
       res.json(categorias);
     } catch (error) {
-      console.error('Erro ao buscar categorias' + ':', error);
+      console.error('Erro ao buscar categorias:', error);
       res.status(500).json({ message: 'Erro ao buscar categorias' });
     }
   },

@@ -1,4 +1,4 @@
-    
+-- pgcrypto gera o hash bcrypt das senhas direto no sql
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
 INSERT INTO categoria (nome) VALUES

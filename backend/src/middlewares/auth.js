@@ -1,17 +1,16 @@
 import jwt from 'jsonwebtoken';
 
 export default function auth(req, res, next) {
-  const token = req.headers.authorization?.replace('Bearer ', '');
+  const [scheme, token] = (req.headers.authorization || '').split(' ');
 
-  if (!token) {
-    return res.status(401).json({ message: "Não autorizado" });
+  if (scheme !== 'Bearer' || !token) {
+    return res.status(401).json({ message: 'Não autorizado' });
   }
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded;
+    req.user = jwt.verify(token, process.env.JWT_SECRET);
     next();
-  } catch (err) {
-    return res.status(401).json({ message: "Não autorizado" });
+  } catch {
+    return res.status(401).json({ message: 'Não autorizado' });
   }
 }

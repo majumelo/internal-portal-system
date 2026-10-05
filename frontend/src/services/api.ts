@@ -18,6 +18,7 @@ export async function apiFetch<T>(path: string, options: RequestInit = {}): Prom
   if (token) headers.Authorization = `Bearer ${token}`;
 
   const response = await fetch(`${API_URL}${path}`, { ...options, headers });
+  // resposta sem body não deve quebrar o parse
   const data = await response.json().catch(() => null);
 
   if (!response.ok) {

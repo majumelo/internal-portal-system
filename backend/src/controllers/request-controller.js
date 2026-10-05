@@ -27,10 +27,9 @@ function handlePrismaError(res, error, notFoundMessage) {
   return res.status(500).json({ message: 'Erro ao processar a solicitação' });
 }
 
-// Fluxo de status: ABERTO → EM_ATENDIMENTO → CONCLUIDO. Concluído é final.
+// fluxo linear, sem volta; concluido é final
 const PROXIMO_STATUS = { ABERTO: 'EM_ATENDIMENTO', EM_ATENDIMENTO: 'CONCLUIDO' };
 
-// Retorna a mensagem de erro ou null
 function validateTitulo(titulo) {
   if (typeof titulo !== 'string' || titulo.trim().length < 3) {
     return 'Título deve ter pelo menos 3 caracteres';
@@ -97,7 +96,7 @@ const controller = {
       });
       res.json(solicitacoes);
     } catch (error) {
-      console.error('Erro ao buscar solicitações' + ':', error);
+      console.error('Erro ao buscar solicitações:', error);
       res.status(500).json({ message: 'Erro ao buscar solicitações' });
     }
   },
@@ -113,7 +112,7 @@ const controller = {
       ]);
       res.json({ total, aberto, emAtendimento, concluido });
     } catch (error) {
-      console.error('Erro ao buscar indicadores' + ':', error);
+      console.error('Erro ao buscar indicadores:', error);
       res.status(500).json({ message: 'Erro ao buscar indicadores' });
     }
   },
@@ -129,7 +128,7 @@ const controller = {
       if (!solicitacao) return res.status(404).json({ message: 'Solicitação não encontrada' });
       res.json(solicitacao);
     } catch (error) {
-      console.error('Erro ao buscar solicitação' + ':', error);
+      console.error('Erro ao buscar solicitação:', error);
       res.status(500).json({ message: 'Erro ao buscar solicitação' });
     }
   },
@@ -149,13 +148,13 @@ const controller = {
         return res.status(400).json({ message: 'Categoria informada é inválida' });
       }
 
-      // A solicitação e o registro inicial do histórico nascem na mesma transação
       const solicitacao = await prisma.solicitacao.create({
         data: {
           titulo: titulo.trim(),
           descricao: descricao.trim(),
           categoriaId: categoria.id,
           solicitanteId: req.user.id,
+          // nested write: o registro inicial do histórico entra na mesma transação
           historicos: {
             create: { statusAnterior: null, statusNovo: 'ABERTO', usuarioId: req.user.id },
           },
@@ -263,6 +262,7 @@ const controller = {
         });
       }
 
+      // status e histórico gravados juntos ou nenhum dos dois
       const [solicitacao] = await prisma.$transaction([
         prisma.solicitacao.update({
           where: { id },

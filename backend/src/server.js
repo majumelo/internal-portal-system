@@ -19,6 +19,7 @@ const allowedOrigins = (process.env.CORS_ORIGIN || 'http://localhost:5173')
 
 const corsOptions = {
   origin: function (origin, callback) {
+    // sem origin = chamada fora do browser (curl, postman)
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
@@ -42,6 +43,7 @@ app.use(errorHandler);
 
 const port = Number(process.env.PORT || 3333);
 
+// só sobe a api se o banco estiver acessível
 try {
   await prisma.$connect();
   app.listen(port, () => {

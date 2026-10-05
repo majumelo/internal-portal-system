@@ -48,6 +48,7 @@ const Home = () => {
   const [modal, setModal] = useState<ModalState>(null);
   const [erroLista, setErroLista] = useState('');
 
+  // token expirado ou inválido: limpa a sessão e volta pro login
   const handleAuthError = useCallback(
     (error: unknown) => {
       if (error instanceof ApiError && error.status === 401) {
@@ -78,7 +79,11 @@ const Home = () => {
       setSolicitacoes(data);
     } catch (error) {
       if (!handleAuthError(error)) {
-        setErroLista('Não foi possível carregar as solicitações.');
+        setErroLista(
+          error instanceof ApiError && error.status === 400
+            ? error.message
+            : 'Não foi possível carregar as solicitações.'
+        );
       }
     } finally {
       setLoadingLista(false);
@@ -102,14 +107,24 @@ const Home = () => {
     navigate('/');
   };
 
+  // trata o 401 e repassa o erro pro modal exibir a mensagem
+  async function withAuth<T>(request: Promise<T>): Promise<T> {
+    try {
+      return await request;
+    } catch (error) {
+      handleAuthError(error);
+      throw error;
+    }
+  }
+
   const handleCreate = async (data: RequestFormData) => {
-    await apiFetch('/api/request', { method: 'POST', body: JSON.stringify(data) });
+    await withAuth(apiFetch('/api/request', { method: 'POST', body: JSON.stringify(data) }));
     setModal(null);
     await Promise.all([loadSolicitacoes(), loadDashboard()]);
   };
 
   const handleEdit = async (id: number, data: RequestFormData) => {
-    await apiFetch(`/api/request/${id}`, { method: 'PUT', body: JSON.stringify(data) });
+    await withAuth(apiFetch(`/api/request/${id}`, { method: 'PUT', body: JSON.stringify(data) }));
     setModal(null);
     await loadSolicitacoes();
   };
@@ -127,10 +142,12 @@ const Home = () => {
   };
 
   const handleChangeStatus = async (id: number, status: Status, observacao: string) => {
-    const atualizada = await apiFetch<Solicitacao>(`/api/request/${id}/status`, {
-      method: 'PATCH',
-      body: JSON.stringify({ status, observacao: observacao || undefined }),
-    });
+    const atualizada = await withAuth(
+      apiFetch<Solicitacao>(`/api/request/${id}/status`, {
+        method: 'PATCH',
+        body: JSON.stringify({ status, observacao: observacao || undefined }),
+      })
+    );
     setModal({ mode: 'detail', solicitacao: atualizada });
     await Promise.all([loadSolicitacoes(), loadDashboard()]);
   };

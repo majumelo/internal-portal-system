@@ -39,8 +39,6 @@
   gap: 1.75rem;
 }
 
-/* Buttons */
-
 .btn {
   height: 40px;
   padding: 0 1rem;
@@ -95,8 +93,6 @@
   cursor: not-allowed;
 }
 
-/* Dashboard */
-
 .dashboard-cards {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -121,8 +117,6 @@
   font-size: 0.85rem;
   color: var(--muted);
 }
-
-/* Filters */
 
 .filters-bar {
   display: flex;
@@ -158,8 +152,6 @@
 .filter-field.grow {
   flex: 1 1 220px;
 }
-
-/* Table */
 
 .requests-panel {
   background: var(--surface);
@@ -240,8 +232,6 @@
 .status-badge[data-status="ABERTO"] { --dot: var(--st-aberto); }
 .status-badge[data-status="EM_ATENDIMENTO"] { --dot: var(--st-em_atendimento); }
 .status-badge[data-status="CONCLUIDO"] { --dot: var(--st-concluido); }
-
-/* Modal */
 
 .modal-overlay {
   position: fixed;
@@ -332,6 +322,11 @@
   font-size: 0.9rem;
   line-height: 1.5;
   white-space: pre-wrap;
+}
+
+.detail-section-title {
+  margin: 1.5rem 0 1rem;
+  font-size: 1rem;
 }
 
 .timeline {

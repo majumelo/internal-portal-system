@@ -6,7 +6,7 @@ const PERFIL_VALUES = ['COLABORADOR', 'ATENDENTE'];
 
 const userSelect = { id: true, nome: true, login: true, perfil: true, ativo: true };
 
-// Valida apenas os campos presentes; retorna a mensagem de erro ou null
+// valida só o que veio no body, serve pro create e pro update parcial
 function validateFields({ nome, login, senha, perfil, ativo }) {
   if (nome !== undefined && (typeof nome !== 'string' || !nome.trim() || nome.trim().length > 100)) {
     return 'Nome é obrigatório e deve ter no máximo 100 caracteres';
@@ -33,17 +33,17 @@ function handlePrismaError(res, error, fallbackMessage) {
   if (error.code === 'P2002') {
     return res.status(409).json({ message: 'Já existe um usuário com esse login' });
   }
+  // fk: usuário ainda referenciado por solicitação ou histórico
   if (error.code === 'P2003') {
     return res.status(409).json({
       message: 'Usuário possui solicitações ou histórico vinculados; desative-o em vez de excluir',
     });
   }
-  console.error(fallbackMessage + ':', error);
+  console.error(`${fallbackMessage}:`, error);
   return res.status(500).json({ message: fallbackMessage });
 }
 
 const controller = {
-
   async getAll(req, res) {
     try {
       const users = await prisma.usuario.findMany({
@@ -52,7 +52,7 @@ const controller = {
       });
       res.json(users);
     } catch (error) {
-      console.error('Erro ao buscar usuários' + ':', error);
+      console.error('Erro ao buscar usuários:', error);
       res.status(500).json({ message: 'Erro ao buscar usuários' });
     }
   },
@@ -68,7 +68,7 @@ const controller = {
       if (!user) return res.status(404).json({ message: 'Usuário não encontrado' });
       res.json(user);
     } catch (error) {
-      console.error('Erro ao buscar usuário' + ':', error);
+      console.error('Erro ao buscar usuário:', error);
       res.status(500).json({ message: 'Erro ao buscar usuário' });
     }
   },
@@ -129,6 +129,6 @@ const controller = {
       handlePrismaError(res, error, 'Erro ao deletar usuário');
     }
   },
-
 };
+
 export default controller;

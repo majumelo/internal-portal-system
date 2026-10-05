@@ -15,6 +15,7 @@ type Props = {
 };
 
 const RequestFilters = ({ categorias, filters, onChange }: Props) => {
+  // texto fica local e só é aplicado no buscar, pra não disparar request a cada tecla
   const [texto, setTexto] = useState(filters.texto || '');
 
   const handleTextoSubmit = (e: React.FormEvent) => {

@@ -34,6 +34,7 @@ const RequestTable = ({ solicitacoes, currentUserId, loading, onView, onEdit, on
       </thead>
       <tbody>
         {solicitacoes.map((solicitacao) => {
+          // só controla os botões; a permissão de fato é validada na api
           const isOwnerAndOpen =
             solicitacao.solicitanteId === currentUserId && solicitacao.status === 'ABERTO';
           return (

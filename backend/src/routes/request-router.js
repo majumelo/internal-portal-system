@@ -4,6 +4,7 @@ import requirePerfil from '../middlewares/role.js';
 
 const router = express.Router();
 
+// precisa vir antes de /:id
 router.get('/dashboard', controller.dashboard);
 router.get('/', controller.getAll);
 router.get('/:id', controller.getOne);

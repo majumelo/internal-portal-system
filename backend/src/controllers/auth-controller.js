@@ -7,16 +7,17 @@ const controller = {
     try {
       const { login, senha } = req.body;
 
-      if (!login || !senha) {
+      if (typeof login !== 'string' || typeof senha !== 'string' || !login.trim() || !senha) {
         return res.status(400).json({ message: 'Login e senha são obrigatórios' });
       }
 
       const user = await prisma.usuario.findFirst({
-        where: { login, ativo: true },
+        where: { login: login.trim(), ativo: true },
       });
       const validPassword = user
         ? await bcrypt.compare(senha, user.senhaHash)
         : false;
+      // mesma mensagem nos dois casos para não revelar se o login existe
       if (!validPassword) {
         return res.status(401).json({ message: 'Usuário ou senha incorretos' });
       }

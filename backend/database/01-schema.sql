@@ -1,4 +1,3 @@
-
 CREATE TABLE IF NOT EXISTS usuario (
     id          SERIAL       PRIMARY KEY,
     nome        VARCHAR(100) NOT NULL,
@@ -36,6 +35,7 @@ CREATE INDEX IF NOT EXISTS idx_solicitacao_criado_em    ON solicitacao (criado_e
 CREATE TABLE IF NOT EXISTS historico_status (
     id               SERIAL       PRIMARY KEY,
     solicitacao_id   INT          NOT NULL REFERENCES solicitacao (id) ON DELETE CASCADE,
+    -- nulo no registro de criação da solicitação
     status_anterior  VARCHAR(20)  NULL
                      CHECK (status_anterior IN ('ABERTO', 'EM_ATENDIMENTO', 'CONCLUIDO')),
     status_novo      VARCHAR(20)  NOT NULL

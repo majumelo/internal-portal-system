@@ -4,6 +4,7 @@ import { PrismaClient } from '@prisma/client';
 
 dotenv.config({ path: fileURLToPath(new URL('../../.env', import.meta.url)) });
 
+// fallback: monta a url a partir das variáveis separadas
 if (!process.env.DATABASE_URL) {
   const { DB_HOST, DB_USER, DB_PASSWORD, DB_NAME } = process.env;
   if (!DB_HOST || !DB_USER || !DB_PASSWORD || !DB_NAME) {
